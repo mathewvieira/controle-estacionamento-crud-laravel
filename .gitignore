@@ -1,0 +1,19 @@
+vendor/
+node_modules/
+bootstrap/compiled.php
+app/storage/
+public/storage
+public/hot
+public_html/storage
+public_html/hot
+
+# OBS: Removido intencionalmente para testes. Ideal é manter descomentado.
+# .env
+
+storage/*.key
+/.vagrant
+.phpunit.result.cache
+Homestead.yaml
+Homestead.json
+yarn-error.log
+npm-debug.log

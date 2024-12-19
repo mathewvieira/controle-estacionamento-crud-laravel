@@ -1,0 +1,68 @@
+services:
+    php:
+        container_name: laravel-php
+        build:
+            context: ./docker/php
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        tty: true
+        ports:
+            - "9000:9000"
+        volumes:
+            - ./:/var/www/html
+            - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+        networks:
+            - laravel-network
+        environment:
+            TZ: UTC
+            PHP_DISPLAY_ERRORS: 1
+            PHP_MEMORY_LIMIT: 512M
+        command: >
+            sh -c "if [ ! -d /var/www/html/vendor ]; then
+                composer install;
+            fi && chown -R www-data:www-data /var/www/html &&
+            chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache &&
+            php-fpm"
+
+    nginx:
+        container_name: laravel-nginx
+        build:
+            context: ./docker/nginx
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        tty: true
+        ports:
+            - "8080:80"
+            - "443:443"
+        volumes:
+            - ./:/var/www/html
+            - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+        networks:
+            - laravel-network
+
+    mysql:
+        container_name: laravel-mysql
+        image: mysql:8.0.40
+        command: --default-authentication-plugin=mysql_native_password
+        restart: always
+        tty: true
+        volumes:
+            - laravel-data:/var/lib/mysql/
+            - ./docker/mysql/my.cnf:/etc/mysql/my.cnf
+        networks:
+            - laravel-network
+        ports:
+            - "3306:3306"
+        environment:
+            MYSQL_DATABASE: laravel_db
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_USER: user
+            MYSQL_PASSWORD: password
+
+networks:
+    laravel-network:
+        driver: bridge
+
+volumes:
+    laravel-data:
+        driver: local
